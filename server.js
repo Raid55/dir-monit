@@ -40,16 +40,23 @@ io.on("connection", (socket) => {
   });
 });
 
-const addToTree = (path, stat) => {
-  _addToTree(treeRoot, path, stat.isDirectory());
+const addFileToTree = (path) => {
+  _addToTree(treeRoot, path, false);
+};
+
+const addFolderToTree = (path) => {
+  _addToTree(treeRoot, path, true);
 };
 
 const delFromTree = (path) => {
   _delFromTree(treeRoot, path);
 };
 
-const emitAdd = (path, stat) => {
-  io.emit("update:add", { path, dir: stat.isDirectory() });
+const emitFileAdd = (path) => {
+  io.emit("update:add", { path, dir: false });
+};
+const emitFolderAdd = (path) => {
+  io.emit("update:add", { path, dir: true });
 };
 
 const emitDel = (path) => {
@@ -63,8 +70,8 @@ const watcher = chokidar.watch(watchPaths, {
   persistent: true,
 });
 
-watcher.on("addDir", addToTree);
-watcher.on("add", addToTree);
+watcher.on("addDir", addFolderToTree);
+watcher.on("add", addFileToTree);
 watcher.on("unlink", delFromTree);
 watcher.on("unlinkDir", delFromTree);
 
@@ -74,8 +81,8 @@ watcher.on("ready", () => {
   console.log(
     util.inspect(treeRoot.model, false, null, true /* enable colors */)
   );
-  watcher.on("addDir", emitAdd);
-  watcher.on("add", emitAdd);
+  watcher.on("addDir", emitFolderAdd);
+  watcher.on("add", emitFileAdd);
   watcher.on("unlink", emitDel);
   watcher.on("unlinkDir", emitDel);
 });
