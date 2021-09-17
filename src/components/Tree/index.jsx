@@ -11,7 +11,6 @@ const StyledTree = styled.div`
 
 const TreeRecursive = ({ data }) => {
   return data.map((item) => {
-    console.log(item);
     return item.model.dir ? (
       <Folder name={item.model.id} key={item.model.id}>
         {item.children ? <TreeRecursive data={item.children} /> : null}
@@ -23,7 +22,6 @@ const TreeRecursive = ({ data }) => {
 };
 
 const Tree = ({ data }) => {
-  console.log(data);
   return (
     <IconContext.Provider value={{ size: "1.5rem" }}>
       <StyledTree>
