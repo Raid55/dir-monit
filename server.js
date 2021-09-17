@@ -49,11 +49,11 @@ const delFromTree = (path) => {
 };
 
 const emitAdd = (path, stat) => {
-  return io.emit("update:add", { path, dir: stat.isDirectory() });
+  io.emit("update:add", { path, dir: stat.isDirectory() });
 };
 
 const emitDel = (path) => {
-  return io.emit("update:del", { path });
+  io.emit("update:del", { path });
 };
 
 const watcher = chokidar.watch(watchPaths, {
@@ -70,6 +70,10 @@ watcher.on("unlinkDir", delFromTree);
 
 // called when finished init glob scan is finished
 watcher.on("ready", () => {
+  // log initial tree
+  console.log(
+    util.inspect(treeRoot.model, false, null, true /* enable colors */)
+  );
   watcher.on("addDir", emitAdd);
   watcher.on("add", emitAdd);
   watcher.on("unlink", emitDel);
@@ -83,7 +87,4 @@ app.get("*", (req, res) => {
 
 httpServer.listen(argv.port, () => {
   console.log("Ready on PORT: ", argv.port);
-  console.log(
-    util.inspect(treeRoot.model, false, null, true /* enable colors */)
-  );
 });
