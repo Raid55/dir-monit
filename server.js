@@ -1,0 +1,89 @@
+const util = require("util");
+const path = require("path");
+const fs = require("fs");
+const chokidar = require("chokidar");
+const minimist = require("minimist");
+const Io = require("socket.io");
+const express = require("express");
+const http = require("http");
+
+const { _newNode, _addToTree, _delFromTree } = require("./src/utils/treeModel");
+
+const argv = minimist(process.argv.slice(2), {
+  default: {
+    ignored: ["**/node_modules/**/*", "**/.git/**/*"],
+    depth: 99,
+    port: 3000,
+  },
+});
+
+const watchPaths = argv._.map((argPath) => {
+  let tmp = path.resolve(argPath);
+  if (fs.existsSync(tmp) && fs.lstatSync(tmp).isDirectory()) return tmp;
+  throw new Error(`Bad Path or Path is not a Dir: ${tmp}`);
+});
+
+let treeRoot = _newNode({ id: "/root", dir: true });
+
+// init app
+const app = express();
+
+// init http server
+const httpServer = http.createServer(app);
+
+// init socket IO
+const io = Io(httpServer);
+
+io.on("connection", (socket) => {
+  socket.emit("init", {
+    tree: treeRoot.model,
+  });
+});
+
+const addToTree = (path, stat) => {
+  _addToTree(treeRoot, path, stat.isDirectory());
+};
+
+const delFromTree = (path) => {
+  _delFromTree(treeRoot, path);
+};
+
+const emitAdd = (path, stat) => {
+  return io.emit("update:add", { path, dir: stat.isDirectory() });
+};
+
+const emitDel = (path) => {
+  return io.emit("update:del", { path });
+};
+
+const watcher = chokidar.watch(watchPaths, {
+  ignored: argv.ignored,
+  depth: argv.depth,
+  ignorePermissionErrors: true,
+  persistent: true,
+});
+
+watcher.on("addDir", addToTree);
+watcher.on("add", addToTree);
+watcher.on("unlink", delFromTree);
+watcher.on("unlinkDir", delFromTree);
+
+// called when finished init glob scan is finished
+watcher.on("ready", () => {
+  watcher.on("addDir", emitAdd);
+  watcher.on("add", emitAdd);
+  watcher.on("unlink", emitDel);
+  watcher.on("unlinkDir", emitDel);
+});
+
+app.use(express.static(path.resolve(__dirname, "./build/")));
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "./build/index.html"));
+});
+
+httpServer.listen(argv.port, () => {
+  console.log("Ready on PORT: ", argv.port);
+  console.log(
+    util.inspect(treeRoot.model, false, null, true /* enable colors */)
+  );
+});

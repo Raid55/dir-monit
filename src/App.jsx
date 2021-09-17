@@ -26,7 +26,8 @@ const App = () => {
   );
 
   useEffect(() => {
-    const newSocket = io(`ws://${window.location.hostname}:3030`);
+    const { hostname, port } = window.location;
+    const newSocket = io(`ws://${hostname}:${port}`);
     setSocket(newSocket);
     newSocket.on("init", (data) => {
       setRootTree([_newNode(data.tree)]);
