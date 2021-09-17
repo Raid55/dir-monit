@@ -6,11 +6,11 @@
 
 # Choices Made
 
-- To monitor directories I opted for Chokidar which is used under the hood for hot-reload scripts like Create React App.
-- Rendering the tree was made simpler by the use of a PWA framework like react, recursed over file and folder components.
+- To monitor directories I opted for `chokidar` which is used under the hood for hot-reload scripts like Create React App.
+- Rendering the tree was made simpler by the use of a PWA framework like `react`, recursed over file and folder components.
 - The file structure is all kept in a tree. I used `tree-model` as a helper.
-- Keeping the server synced with the client was done with Socket.IO. I emit the full tree on connection, then send add or remove events to the client to update its local tree, server tree is also updated for any additional client connections.
-- I consciously decided not to use Typescript, since it would slow me down on a project where I don't think it matters that much given its small scope. I also refrained from using `tree structure` react components and premade libraries that would fill this exact use-case
+- Keeping the server synced with the client was done with `Socket.IO`. I emit the full tree on connection, then send add or remove events to the client to update its local tree, server tree is also updated for any additional client connections.
+- I consciously decided not to use `Typescript`, since it would slow me down on a project where I don't think it matters that much given its small scope. I also refrained from using `tree structure` react components and premade libraries that would fill this exact use-case
 
 # Known Bugs
 
